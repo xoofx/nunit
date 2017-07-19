@@ -68,5 +68,16 @@ namespace NUnit.Framework.Attributes
             Assert.AreEqual(1, categories.Count);
             Assert.AreEqual("SAMPLE", categories[0]);
         }
+
+
+        private int directRunSmellTestRunCount;
+
+        [Test, Retry(3)]
+        public void DirectRunSmellTest()
+        {
+            directRunSmellTestRunCount++;
+            if (directRunSmellTestRunCount < 3)
+                Assert.Fail("Not the final try");
+        }
     }
 }
