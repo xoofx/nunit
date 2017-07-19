@@ -29,7 +29,7 @@ using NUnit.Framework;
 namespace NUnit.TestData.RepeatingTests
 {
     [TestFixture]
-    public class RepeatingTestsFixtureBase
+    public class RepeatingTestsFixtureBase : IRepeatingTestsFixture
     {
         private int fixtureSetupCount;
         private int fixtureTeardownCount;

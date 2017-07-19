@@ -45,9 +45,9 @@ namespace NUnit.Framework.Attributes
         [TestCase(typeof(RetryErrorOnSecondTryFixture), "Failed(Child)", 2)]
         [TestCase(typeof(RetryErrorOnThirdTryFixture), "Failed(Child)", 3)]
         [TestCase(typeof(RetryTestCaseFixture), "Failed(Child)", 3)]
-        public void RetryWorksAsExpected(Type fixtureType, string outcome, int nTries)
+        public void RetryWorksAsExpectedOnFixturesWithSetupAndTeardown(Type fixtureType, string outcome, int nTries)
         {
-            RepeatingTestsFixtureBase fixture = (RepeatingTestsFixtureBase)Reflect.Construct(fixtureType);
+            IRepeatingTestsFixture fixture = (IRepeatingTestsFixture)Reflect.Construct(fixtureType);
             ITestResult result = TestBuilder.RunTestFixture(fixture);
 
             Assert.That(result.ResultState.ToString(), Is.EqualTo(outcome));
@@ -55,6 +55,16 @@ namespace NUnit.Framework.Attributes
             Assert.AreEqual(1, fixture.FixtureTeardownCount);
             Assert.AreEqual(nTries, fixture.SetupCount);
             Assert.AreEqual(nTries, fixture.TeardownCount);
+            Assert.AreEqual(nTries, fixture.Count);
+        }
+
+        [TestCase(typeof(RetryWithoutSetUpOrTearDownSucceedsOnThirdTryFixture), "Passed", 3)]
+        public void RetryWorksAsExpectedOnFixturesWithoutSetupOrTeardown(Type fixtureType, string outcome, int nTries)
+        {
+            IRepeatingTestsFixture fixture = (IRepeatingTestsFixture)Reflect.Construct(fixtureType);
+            ITestResult result = TestBuilder.RunTestFixture(fixture);
+
+            Assert.That(result.ResultState.ToString(), Is.EqualTo(outcome));
             Assert.AreEqual(nTries, fixture.Count);
         }
 
@@ -67,17 +77,6 @@ namespace NUnit.Framework.Attributes
             Assert.IsNotNull(categories);
             Assert.AreEqual(1, categories.Count);
             Assert.AreEqual("SAMPLE", categories[0]);
-        }
-
-
-        private int directRunSmellTestRunCount;
-
-        [Test, Retry(3)]
-        public void DirectRunSmellTest()
-        {
-            directRunSmellTestRunCount++;
-            if (directRunSmellTestRunCount < 3)
-                Assert.Fail("Not the final try");
         }
     }
 }

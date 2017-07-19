@@ -175,4 +175,26 @@ namespace NUnit.TestData.RepeatingTests
             Assert.IsTrue(false);
         }
     }
+
+    public class RetryWithoutSetUpOrTearDownSucceedsOnThirdTryFixture : IRepeatingTestsFixture
+    {
+        public int FixtureSetupCount => 0;
+
+        public int FixtureTeardownCount => 0;
+
+        public int SetupCount => 0;
+
+        public int TeardownCount => 0;
+
+        public int Count { get; private set; }
+
+        [Test, Retry(3)]
+        public void SucceedsOnThirdTry()
+        {
+            Count++;
+
+            if (Count < 3)
+                Assert.Fail();
+        }
+    }
 }
