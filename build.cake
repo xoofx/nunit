@@ -383,6 +383,7 @@ var FrameworkFiles = new FilePath[]
     "mock-assembly.dll",
     "mock-assembly.exe",
     "nunit.framework.dll",
+    "nunit.framework.pdb",
     "nunit.framework.xml",
     "NUnit.System.Linq.dll",
     "nunit.framework.tests.dll",
@@ -442,7 +443,8 @@ Task("PackageFramework")
         {
             Version = packageVersion,
             BasePath = currentImageDir,
-            OutputDirectory = PACKAGE_DIR
+            OutputDirectory = PACKAGE_DIR,
+            Symbols = true
         });
 
         NuGetPack("nuget/nunitlite/nunitlite.nuspec", new NuGetPackSettings()
