@@ -1,4 +1,5 @@
 #tool nuget:?package=NUnit.ConsoleRunner&version=3.7.0
+#tool "nuget:?package=gitlink"
 
 //////////////////////////////////////////////////////////////////////
 // ARGUMENTS
@@ -402,13 +403,13 @@ var FrameworkFiles = new FilePath[]
     "System.ValueTuple.dll"
 };
 
+var currentImageDir = IMAGE_DIR + "NUnit-" + packageVersion + "/";
+var imageBinDir = currentImageDir + "bin/";
+
 Task("CreateImage")
     .Description("Copies all files into the image directory")
     .Does(() =>
     {
-        var currentImageDir = IMAGE_DIR + "NUnit-" + packageVersion + "/";
-        var imageBinDir = currentImageDir + "bin/";
-
         CleanDirectory(currentImageDir);
 
         CopyFiles(RootFiles, currentImageDir);
@@ -430,9 +431,27 @@ Task("CreateImage")
         }
     });
 
+Task("GitLink")
+    .Description("Indexes symbols to pull source files from GitHub at the current commit")
+    .IsDependentOn("CreateImage")
+    .Does(() =>
+    {
+        foreach (var pdbBuiltInRepo in GetFiles(imageBinDir + "**/nunit.framework.pdb"))
+        {
+            // Waiting for GitLink3 alias to be released in Cake 0.22
+            StartProcess("tools/GitLink/build/GitLink.exe", new ProcessSettings
+            {
+                Arguments = new ProcessArgumentBuilder()
+                    .AppendSwitchQuoted("--url", "https://github.com/nunit/nunit")
+                    .AppendSwitchQuoted("--baseDir", System.IO.Path.GetFullPath("."))
+                    .AppendQuoted(System.IO.Path.GetFullPath(pdbBuiltInRepo.FullPath))
+            });
+        }
+    });
+
 Task("PackageFramework")
     .Description("Creates NuGet packages of the framework")
-    .IsDependentOn("CreateImage")
+    .IsDependentOn("GitLink")
     .Does(() =>
     {
         var currentImageDir = IMAGE_DIR + "NUnit-" + packageVersion + "/";
@@ -457,7 +476,7 @@ Task("PackageFramework")
 
 Task("PackageZip")
     .Description("Creates a ZIP file of the framework")
-    .IsDependentOn("CreateImage")
+    .IsDependentOn("GitLink")
     .Does(() =>
     {
         CreateDirectory(PACKAGE_DIR);
